@@ -1,20 +1,21 @@
-﻿using BoardGames.Domain.Entities;
-using BoardGames.Infrastructure.Data;
+﻿using BoardGames.Application.Common.Interfaces;
+using BoardGames.Domain.Entities;
+using BoardGames.Infrastructure.Repository;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BoardGames.Web.Controllers
 {
 	public class CategoryController : Controller
 	{
-		private readonly ApplicationDbContext _db;
+		private readonly IUnitOfWork _unitOfWork;
 
-		public CategoryController(ApplicationDbContext db) 
+		public CategoryController(IUnitOfWork unitOfWork) 
 		{
-			_db = db;		
+			_unitOfWork = unitOfWork;		
 		}
 		public IActionResult Index()
 		{
-			var categorys = _db.Categorys.ToList();
+			var categorys = _unitOfWork.Category.GetAll();
 
 			return View(categorys);
 		}
@@ -32,8 +33,8 @@ namespace BoardGames.Web.Controllers
 
             if (ModelState.IsValid)
             {
-                _db.Categorys.Add(obj);
-                _db.SaveChanges();
+				_unitOfWork.Category.Add(obj);
+				_unitOfWork.Save();
 
                 TempData["success"] = "The category has been created successfully.";
                 return RedirectToAction(nameof(Index));
@@ -46,7 +47,7 @@ namespace BoardGames.Web.Controllers
 		// UPDATE
 		public IActionResult Update(int categoryId)
 		{
-			Category? obj = _db.Categorys.FirstOrDefault(u => u.Id == categoryId);
+			Category? obj = _unitOfWork.Category.Get(u => u.Id == categoryId);
 
 			//villa? obj2 = _db.Villas.Find(villaId);
 			//var VillaList = _db.Villas.Where(_ => _.Price > 50 && _. Occupancy > 0);
@@ -66,8 +67,8 @@ namespace BoardGames.Web.Controllers
 
 			if (ModelState.IsValid && obj.Id > 0)
 			{
-				_db.Categorys.Update(obj);
-				_db.SaveChanges();
+				_unitOfWork.Category.Update(obj);
+				_unitOfWork.Save();
 
 				TempData["success"] = "The category has been updated successfully.";
 				return RedirectToAction(nameof(Index));
@@ -82,7 +83,7 @@ namespace BoardGames.Web.Controllers
 		public IActionResult Delete(int categoryId)
 		{
 			//Aqui estou a aceder à bd, a comparar com o id que foi selecionado pelo clique do get
-			Category? obj = _db.Categorys.FirstOrDefault(x => x.Id == categoryId);
+			Category? obj = _unitOfWork.Category.Get(x => x.Id == categoryId);
 
 			if (obj is null)
 			{
@@ -98,12 +99,12 @@ namespace BoardGames.Web.Controllers
 		[HttpPost]
 		public IActionResult Delete(Category obj)
 		{
-			Category? objFromDb = _db.Categorys.FirstOrDefault(_ => _.Id == obj.Id);
+			Category? objFromDb = _unitOfWork.Category.Get(_ => _.Id == obj.Id);
 
 			if (objFromDb is not null)
 			{
-				_db.Categorys.Remove(objFromDb);
-				_db.SaveChanges();              //vai ver que alterações foram preparadas e faz save na bd
+				_unitOfWork.Category.Remove(objFromDb);
+				_unitOfWork.Save();              //vai ver que alterações foram preparadas e faz save na bd
 
 				TempData["success"] = "Category has been deleted sucessfully!";
 				return RedirectToAction(nameof(Index));

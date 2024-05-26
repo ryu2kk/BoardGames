@@ -1,4 +1,6 @@
+using BoardGames.Application.Common.Interfaces;
 using BoardGames.Infrastructure.Data;
+using BoardGames.Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +11,9 @@ builder.Services.AddControllersWithViews();
 // Adicionar ApllicationDbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options => 
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Adicionar UnitOfWork
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 var app = builder.Build();
 
